@@ -5,7 +5,6 @@ node_modules
 config/secretDatabase.js
 config/secretAuth.js
 config/auth.js
-
 lib-cov
 *.seed
 *.log
