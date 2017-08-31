@@ -1,3 +1,3 @@
 module.exports = {
-	"url": "mongodb://127.0.0.1:27017/passport-auth"
+	"url": "mongodb://localhost/passport-auth"
 };

@@ -21,7 +21,14 @@ module.exports = function(app, passport) {
   });
 
   // process the singup form
-  // app.post("/singup", passport stuff here);
+  app.post("/signup", passport.authenticate("local-signup", {
+    // redirect to the secure profile section
+    successRedirect: "/profile",
+    // redirect back to the signup page if there is an error
+    failureRedirect: "/signup",
+    // allow flash messages
+    failureFlash: true
+  }));
 
   //============= PROFILE SECTION =============
   // we will want this protected so you have to be logged in to visit
@@ -43,8 +50,11 @@ module.exports = function(app, passport) {
 // route middleware to make sure a user is logged in
 function isLoggedIn(req, res, next) {
   // if user is authenticated in the session, continue
-  if (req.isAuthenticated())
+  if (req.isAuthenticated()) {
     return next();
+  }
   // if they aren't, redirect them to the home page
-  res.redirect("/");
+  else {
+    res.redirect("/");
+  }
 }
