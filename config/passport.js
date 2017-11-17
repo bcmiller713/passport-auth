@@ -1,7 +1,12 @@
 var LocalStrategy = require("passport-local").Strategy;
+var FacebookStrategy = require("passport-facebook").Strategy;
+var TwitterStrategy = require("passport-twitter").Strategy;
+var GoogleStrategy = require("passport-google").Strategy;
 
 // load user model
 var User = require("../app/models/user");
+// load auth variables
+var configAuth = require("./auth");
 
 module.exports = function(passport) {
 
@@ -98,5 +103,110 @@ module.exports = function(passport) {
       });
     }
   ));
+
+  //============ FACEBOOK ============
+  passport.use(new FacebookStrategy({
+    clientID: configAuth.facebookAuth.clientID,
+    clientSecret: configAuth.facebookAuth.clientSecret,
+    callbackURL: configAuth.facebookAuth.callbackURL
+  },
+
+  // facebook will send back the token and profile
+  function(token, refreshToken, profile, done) {
+    // asynchronous
+    process.nextTick(function() {
+      // find the user in the database based on their facebook id
+      User.findOne({ 'facebook.id' : profile.id }, function(err, user) {
+        if (err)
+          return done(err);
+        if (user) {
+          return done(null, user);
+        } else {
+          // if there is no user found with that facebook id, create them
+          var newUser = new User();
+          // set all of the facebook information in the user model
+          newUser.facebook.id = profile.id; // set the user's facebook id
+          newUser.facebook.token = token; // we will save the token that facebook provides to the user
+          newUser.facebook.name = profile.name.givenName + ' ' + profile.name.familyName; // look at the passport user profile to see how the names are returned
+          newUser.facebook.email = profile.emails[0].value; // facebook can return multiple emails so we'll take the first
+          // save our user to the database
+          newUser.save(function(err) {
+            if (err)
+              throw err;
+            return done(null, newUser);
+          });
+        }
+      });
+    });
+  }));
+
+  //============ TWITTER ============
+  passport.use(new TwitterStrategy({
+    consumerKey: configAuth.twitterAuth.consumerKey,
+    consumerSecret: configAuth.twitterAuth.consumerSecret,
+    callbackURL: configAuth.twitterAuth.callbackURL
+  },
+  function(token, tokenSecret, profile, done) {
+    // make code asynchronous; user.findone won't fire until we have all our data back from Twitter
+    process.nextTick(function() {
+      User.findOne({ "twitter.id" : profile.id }, function(err, user) {
+        if (err)
+          return done(err);
+
+        if (user) {
+          return done(null, user);
+        } else {
+          // if there is no user, create one
+          var newUser = new User();
+          // set all of the user data that we need
+          newUser.twitter.id = profile.id;
+          newUser.twitter.token = token;
+          newUser.twitter.username = profile.username;
+          newUser.twitter.displayName = profile.displayName;
+
+          // save user to db
+          newUser.save(function(err) {
+            if (err)
+              throw err;
+            return done(null, newUser);
+          });
+        }
+      });
+    });
+  }));
+
+  //============ GOOGLE ============
+  passport.user(new GoogleStrategy({
+    clientID: configAuth.googleAuth.clientID,
+    clientSecret: configAuth.googleAuth.clientSecret,
+    callbackURL: configAuth.googleAuth.callbackURL
+  },
+  function(token, refreshToken, profile, done) {
+    // make code asynchronous; user.findone won't fire until we have all our data back from google
+    process.nextTick(function() {
+      User.findOne({ "google.id" : profile.id }, function(err, user) {
+        if (err)
+          return done(err);
+        if (user) {
+          return done(null, user);
+        } else {
+          // if the user isn't in our db, create new user
+          var newUser = new User();
+          // set all of the relevant data
+          newUser.google.id = profile.id;
+          newUser.google.token = token;
+          newUser.google.name = profile.displayName;
+          newUser.google.email = profile.emails[0].value; // pull the first emails
+
+          // save the user to the db
+          newUser.save(function(err) {
+            if (err)
+              throw err;
+            return done(null, newUser);
+          });
+        }
+      });
+    });
+  }));
 
 };
