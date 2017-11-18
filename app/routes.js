@@ -93,7 +93,7 @@ module.exports = function(app, passport) {
     // AUTHORIZATION (ALREADY LOGGEN IN/CONNECTING SOCIAL ACCOUNTS) ============
     //==========================================================================
 
-    //============= LOCALLY =============
+    //============= LOCAL =============
     app.get("/connect/local", function(req, res) {
       res.render("connect-local.ejs", { message: req.flash("loginMessage") });
     });
@@ -132,6 +132,47 @@ module.exports = function(app, passport) {
       successRedirect : '/profile',
       failureRedirect : '/'
     }));
+
+    //==========================================================================
+    // UNLINK ACCOUNTS =========================================================
+    //==========================================================================
+
+    //============= LOCAL =============
+    app.get("/unlink/local", function(req, res) {
+      var user = req.user;
+      user.local.email = undefined;
+      user.local.password = undefined;
+      user.save(function(err) {
+        res.redirect("/profile");
+      });
+    });
+
+    //============= FACEBOOK =============
+    app.get("/unlink/facebook", function(req, res) {
+      var user = req.user;
+      user.facebook.token = undefined;
+      user.save(function(err) {
+        res.redirect("/profile");
+      });
+    });
+
+    //============= TWITTER =============
+    app.get("/unlink/twitter", function(req, res) {
+      var user = req.user;
+      user.twitter.token = undefined;
+      user.save(function(err) {
+        res.redirect("/profile");
+      });
+    });
+
+    //============= GOOGLE =============
+    app.get("/unlink/google", function(req, res) {
+      var user = req.user;
+      user.google.token = undefined;
+      user.save(function(err) {
+        res.redirect("/profile");
+      });
+    });
 
 };
 
