@@ -1,7 +1,7 @@
 var LocalStrategy = require("passport-local").Strategy;
 var FacebookStrategy = require("passport-facebook").Strategy;
 var TwitterStrategy = require("passport-twitter").Strategy;
-var GoogleStrategy = require("passport-google").Strategy;
+var GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
 
 // load user model
 var User = require("../app/models/user");
@@ -247,7 +247,7 @@ module.exports = function(passport) {
   }));
 
   //============ GOOGLE ============
-  passport.user(new GoogleStrategy({
+  passport.use(new GoogleStrategy({
     clientID: configAuth.googleAuth.clientID,
     clientSecret: configAuth.googleAuth.clientSecret,
     callbackURL: configAuth.googleAuth.callbackURL,
